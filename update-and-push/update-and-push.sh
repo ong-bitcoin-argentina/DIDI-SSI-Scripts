@@ -20,11 +20,14 @@
 #	-maven:  apt-get install maven
 #	-nvm: 	 curl https://raw.githubusercontent.com/creationix/nvm/master/install.sh | bash
 #
-#-Parámetros (opcionales): [ <modulo1> <modulo2> ... <modulon> ] [ --push ]
+#-Parámetros (opcionales): [ <modulo1> <modulo2> ... <modulon> ] [ -r --push|--upd-only ]
 #				
-#	<moduloi>: Módulo a procesar mediante el script.
-#	--push:    Si se usa este parámetro, se pushearán los Dockers al ACR (por defecto no se pushea).
-#	-r:		   Si se usa este parámetro, el script solicitará confirmación del usuario para seguir, luego de haber mostrado el resumen de las operaciones que realizará.
+#	<moduloi>:  Módulo a procesar mediante el script.
+#	-r:		    Si se usa este parámetro, el script solicitará confirmación del usuario para seguir, luego de haber mostrado el resumen de las operaciones que realizará.
+#	--push:     Si se usa este parámetro, se pushearán los Dockers al ACR (por defecto no se pushea).
+#	--upd-only:	Si se usa este parámetro, solo se actualizarán los repositorios de los módulos y se instalarán dependencias (no se buildearán/pushearán los Dockers).
+#
+#	IMPORTANTE: No se pueden usar los parámetros "--push" y "--upd-only" a la vez.
 #				
 #-Módulos (posibles valores de <moduloi>):
 #
@@ -68,6 +71,7 @@ source $NVM_DIR/nvm.sh;
 #1.2.3. Parámetros
 PROC_MOD="";				  #Array de módulos que serán procesados por el script. Default es "", lo que quiere decir que todos ellos serán procesados.
 PROC_CLONE_REPOS=""; 		  #Array que contendrá los repos que serán clonados por el script. Se generará a partir de "$PROC_MOD".
+PROC_UPD_REPOS="";			  #Array que contendrá los repos que serán actualizados por el script y para los que se instalarán dependencias. Se generará a partir de "$PROC_MOD".
 PROC_DOCKER=""; 			  #Array que contendrá los tags de los Docker que serán buildeados/pusheados por el script. Se generará a partir de "$PROC_MOD".
 											
 #Posibles parámetros de este script y valores para las distintas posiciones del arreglo "$PROC_MOD":
@@ -81,11 +85,14 @@ readonly OPT_MOD_SEMILLAS_BACK="--sem-be"; 			#"semillas-middleware".
 readonly OPT_MOD_SEMILLAS_FRONT="--sem-fe"; 		#"semillas-middleware-frontend".
 readonly OPT_MOD_SERVER="--server"; 				#"didi-server".
 
+readonly OPT_REQ_CONFIRM="-r" #Parámetro opcional para que el script solicite confirmación por consola para proseguir luego de mostrar el resúmen de las operaciones que efectuará.
+REQ_CONFIRM=false; 			  #Variable que dice si hay que solicitar confirmación del usuario. Si no se usa el parámetro "$OPT_REQ_CONFIRM", por defecto no la pide.
+
 readonly OPT_PUSH="--push";   #Parámetro opcional para pushear los Dockers al ACR luego de haberlos buildeado.
 PUSH=false;					  #Variable que dice si hay que pushear los Dockers. Si no se usa el parámetro "$OPT_PUSH", por defecto no se pushea.
 
-readonly OPT_REQ_CONFIRM="-r" #Parámetro opcional para que el script solicite confirmación por consola para proseguir luego de mostrar el resúmen de las operaciones que efectuará.
-REQ_CONFIRM=false; 			  #Variable que dice si hay que solicitar confirmación del usuario. Si no se usa el parámetro "$OPT_REQ_CONFIRM", por defecto no la pide.
+readonly OPT_UPD_ONLY="--upd-only"	#Parámetro opcional para efectuar únicamente una actualización de los repos de los módulos e instalación de dependencias (sin buildear/pushear).
+UPD_ONLY=false;						#Variable que dice si solamente hay que efectuar update de los repos. Si no se usa el parámetro "$OPT_UPD_ONLY", por defecto también se buildea.
 
 
 
@@ -211,9 +218,6 @@ function buildDocker() {
 	#2. Buildeo el Docker con el tag "$2":
 	docker build . -t "$2";
 	exitOnError $?;
-
-	#3. Me paro en la carpeta que contiene este script:
-	cd "$SCRIPT_HOME";	
 }
 
 
@@ -302,8 +306,13 @@ function updateAndBuildOneRepo() {
 		fi
 	fi
 
-	#3. Buildeo el Dockerfile en "$2" con el tag "$3".
-	buildDocker "$2" "$3";
+	#3. Buildeo el Dockerfile en "$2" con el tag "$3" (solo si no se utilizó el argumento "$OPT_UPD_ONLY").
+	if [ $UPD_ONLY = false ]; then
+		buildDocker "$2" "$3";
+	fi
+
+	#4. Me paro en la carpeta que contiene este script:
+	cd "$SCRIPT_HOME";	
 }
 
 #Pushea el Docker "$1".
@@ -345,11 +354,14 @@ function printHelp() {
 	-maven: apt-get install maven
 	-nvm: curl https://raw.githubusercontent.com/creationix/nvm/master/install.sh | bash
 
--Parámetros (opcionales): [ <modulo1> <modulo2> ... <modulon> ] [ $OPT_PUSH ]
+-Parámetros (opcionales): [ <modulo1> <modulo2> ... <modulon> ] [ $OPT_REQ_CONFIRM $OPT_PUSH|$OPT_UPD_ONLY ]
 				
-	<moduloi>: Módulo a procesar mediante el script.
-	$OPT_PUSH: Si se usa este parámetro, se pushearán los Dockers al ACR (por defecto no se pushea).
+	<moduloi>:  Módulo a procesar mediante el script.
 	$OPT_REQ_CONFIRM: Si se usa este parámetro, el script solicitará confirmación del usuario para seguir, luego de haber mostrado el resumen de las operaciones que realizará.
+	$OPT_PUSH: Si se usa este parámetro, se pushearán los Dockers al ACR (por defecto no se pushea).
+	$OPT_UPD_ONLY: Si se usa este parámetro, solo se actualizarán los repositorios de los módulos y se instalarán dependencias (no se buildearán/pushearán los Dockers).
+
+	IMPORTANTE: No se pueden usar los parámetros \"$OPT_PUSH\" y \"$OPT_UPD_ONLY\" a la vez.
 
 -Módulos (posibles valores de <moduloi>):
 
@@ -379,8 +391,9 @@ function procModTweak() {
 	fi
 }
 
-#Obtiene los repos que serán clonados por el script en "$PROC_CLONE_REPOS" a partir de "$PROC_MOD".
-function getReposToClone() {
+#A. Obtiene los repos que serán clonados por el script en "$PROC_CLONE_REPOS" a partir de 
+#B. Obtiene los repos que serán actualizados por el script y para los que se instalarán dependencias en "$PROC_UPD_REPOS" a partir de "$PROC_MOD".
+function getReposToCloneUpd() {
 
 	#Recorro el arreglo "$PROC_MOD":
     let n=$(( $(echo "$PROC_MOD" |awk -F "|" '{print NF}') - 1 ));
@@ -389,22 +402,24 @@ function getReposToClone() {
 		#Valor de la posición actual de "$PROC_MOD":
         value=$(echo $PROC_MOD |awk -v ii=$i -F "|" '{print $ii}');
 
+        #Cantidad de carpetas en path "$REPO_HOME":
+    	let repoHomeLenght=$(echo "$REPO_HOME" |awk -F "/" '{print NF}');
+   	
+    	#Carpeta específica del repo dentro del path "$value":
+    	repoFolder=$(echo $value |awk -v ii=$(( $repoHomeLenght + 1 )) -F "/" '{print $ii}');
+
+    	#Agrego el repo a "$PROC_UPD_REPOS":
+    	PROC_UPD_REPOS+="$REPO_HOME/$repoFolder|";
+
         #Si el repo no existe localmente, entonces agregarlo a "$PROC_CLONE_REPOS":
         if [ ! -d "$value" ]; then
-
-        	#Cantidad de carpetas en path "$REPO_HOME":
-        	let repoHomeLenght=$(echo "$REPO_HOME" |awk -F "/" '{print NF}');
-       	
-        	#Carpeta específica del repo dentro del path "$value":
-        	repoFolder=$(echo $value |awk -v ii=$(( $repoHomeLenght + 1 )) -F "/" '{print $ii}');
-
-        	#Agrego el path completo al repo en el arreglo "$PROC_CLONE_REPOS":
         	PROC_CLONE_REPOS+="$REPO_HOME/$repoFolder|";
         fi
     done
 
-    #Elimino valores repetidos de "$PROC_CLONE_REPOS":
+    #Elimino valores repetidos de "$PROC_CLONE_REPOS" y "$PROC_UPD_REPOS":
     PROC_CLONE_REPOS=$(remDupCols "$PROC_CLONE_REPOS");
+    PROC_UPD_REPOS=$(remDupCols "$PROC_UPD_REPOS");
 }
 
 #Obtiene los tags de los Dockers que serán buildeados/pusheados por el script en "$PROC_DOCKER" a partir de "$PROC_MOD".
@@ -442,7 +457,7 @@ function printSumm() {
 Resumen de Operaciones:				
 *****************************************************************\n";
 
-	#1. Imprimo repos a clonar.
+	#1. Imprimo repos a clonar:
 	if [ "$PROC_CLONE_REPOS" != "" ]; then
 		echo -e "1. Se clonarán los siguientes repositorios:\n";
 		printArr "$PROC_CLONE_REPOS";
@@ -451,15 +466,23 @@ Resumen de Operaciones:
 		echo "1. No se clonará ningún repositorio!";
 	fi
 
+	#2. Imprimo repos a actualizar:
+	echo -e "\n2. Se actualizarán y se instalarán dependencias para los siguientes repositorios:\n";
+	printArr "$PROC_UPD_REPOS";
 
-	#2. Imprimo Dockers a buildear/pushear:
-	if [ $PUSH = true ]; then
-		echo -e "\n2. Se buildearán/pushearán los siguientes Docker:\n";
+	#3. Imprimo Dockers a buildear/pushear (solo si no se utilizó el argumento "$OPT_UPD_ONLY"):
+	if [ $UPD_ONLY = false ]; then
+		if [ $PUSH = true ]; then
+			echo -e "\n3. Se buildearán/pushearán los siguientes Docker:\n";
+		else
+			echo -e "\n3. Se buildearán (no se pushearán!) los siguientes Docker:\n";
+		fi
+
+		printArr "$PROC_DOCKER";
+
 	else
-		echo -e "\n2. Se buildearán (no se pushearán!) los siguientes Docker:\n";
+		echo -e "\n3. No se buildeará/pusheará ningún Docker!\n";
 	fi
-
-	printArr "$PROC_DOCKER";
 
 	echo -e "
 *****************************************************************\n";
@@ -474,22 +497,22 @@ Resumen de Operaciones:
 #Para cada repo en "$PROC_CLONE_REPOS":
 #
 #	-Clona el repo correspondiente desde GitHub bajo el directorio "$REPO_HOME".
-clone() {
+function clone() {
 
 	#Recorro el arreglo "$PROC_CLONE_REPOS":
     let n=$(( $(echo "$PROC_CLONE_REPOS" |awk -F "|" '{print NF}') - 1 ));
     for (( i=1; i<=n; i++ ))
     do
 		#Valor de la posición actual de "$PROC_CLONE_REPOS":
-        value=$(echo $PROC_MOD |awk -v ii=$i -F "|" '{print $ii}');
+        value=$(echo $PROC_CLONE_REPOS |awk -v ii=$i -F "|" '{print $ii}');
 
 		#Clone del repo "$value":
 		case "$value" in
 			"$REPO_ISSUER_MODULE_BACK") cloneOneRepo "$GITHUB_ISSUER_MODULE_BACK";; 
 			"$REPO_ISSUER_MODULE_FRONT") cloneOneRepo "$GITHUB_ISSUER_MODULE_FRONT";;
-			"$REPO_JWT_VALIDATOR_VIEWER") cloneOneRepo "GITHUB_JWT_VALIDATOR_VIEWER";;
+			"$REPO_JWT_VALIDATOR_VIEWER") cloneOneRepo "$GITHUB_JWT_VALIDATOR_VIEWER";;
 			"$REPO_MOURO") cloneOneRepo "$GITHUB_MOURO";;
-			"$REPO_RONDA") cloneOneRepo "$value" "$GITHUB_RONDA";;
+			"$REPO_RONDA") cloneOneRepo "$GITHUB_RONDA";;
 			"$REPO_SEMILLAS_BACK") cloneOneRepo "$GITHUB_SEMILLAS_BACK";;
 			"$REPO_SEMILLAS_FRONT") cloneOneRepo "$GITHUB_SEMILLAS_FRONT";;
 			"$REPO_SERVER") cloneOneRepo "$GITHUB_SERVER";;
@@ -533,7 +556,7 @@ function updateAndBuild() {
 #	-Pushea el Docker buildeado al ACR.
 function push() {
 
-	if [ $PUSH = true ]; then
+	if [ $PUSH = true ] && [ $UPD_ONLY = false ]; then
 	
 		#Login a la consola de Azure:
 		az acr login --name "$DOK_AZ_NAME" --user "$DOK_AZ_USER" --password "$DOK_AZ_PASW";
@@ -576,12 +599,19 @@ while [ $# -gt 0 ]; do
 		"$OPT_MOD_SEMILLAS_BACK") PROC_MOD+="$DOK_FILE_SEMILLAS_BACK|";;
 		"$OPT_MOD_SEMILLAS_FRONT") PROC_MOD+="$DOK_FILE_SEMILLAS_FRONT|";;
 		"$OPT_MOD_SERVER") PROC_MOD+="$DOK_FILE_SERVER|";;
-		"$OPT_PUSH") PUSH=true;;
 		"$OPT_REQ_CONFIRM") REQ_CONFIRM=true;;
+		"$OPT_PUSH") PUSH=true;;
+		"$OPT_UPD_ONLY") UPD_ONLY=true;;
         *) printHelp; #Si se ingresa cualquier otro parámetro imprimir ayuda.
     esac
     shift
 done
+
+#Si se utilizaron los parámetros "$OPT_PUSH" y "$OPT_UPD_ONLY" a la vez, mostrar help y abortar la ejecución del script.
+if [ $PUSH = true ] && [ $UPD_ONLY = true ]; then
+	echo -e "\nNo se pueden utilizar los parámetros \"$OPT_PUSH\" y \"$OPT_UPD_ONLY\" a la vez!";
+	printHelp;
+fi 
 
 #Tweaking de "$PROC_MOD".
 procModTweak;
@@ -591,7 +621,7 @@ procModTweak;
 ############################
 
 #3.2.1. Repos a clonar:
-getReposToClone;
+getReposToCloneUpd;
 
 #3.2.2. Dockers a buildear/pushear:
 getDocktoProc;
