@@ -29,10 +29,11 @@ This guide explains how to use different scripts in this repo.
 ### 2.1.2. Parameters
 
 Optional parameters:
-`[ <module1> <module2> ... <moduloe> ] [ --dont-push ]`
+`[ <module1> <module2> ... <moduloe> ] [ --push ]`
 		
 - `<modulei>`: Module to be processed with this script.
-- `--dont-push`: If you use this parameter, builded Dockers won't be pushed to ACR.
+- `--push`: If you use this parameter, builded Dockers will be pushed to ACR (by default they are not).
+- `-r:`	If you use this parameter, script will request for your confirmation to apply operations after showing a summary in the console.
 				
 Modules (posible values for `<moduloi>`):
 
