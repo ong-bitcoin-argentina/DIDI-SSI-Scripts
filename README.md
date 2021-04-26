@@ -28,14 +28,18 @@ This guide explains how to use different scripts in this repo.
 
 ### 2.1.2. Parameters
 
-Optional parameters:
-`[ <module1> <module2> ... <moduloe> ] [ --push ]`
+A. Optional parameters:
+
+`[ <module1> <module2> ... <moduloe> ] [ -r --push|--upd-only ]`
 		
 - `<modulei>`: Module to be processed with this script.
-- `--push`: If you use this parameter, builded Dockers will be pushed to ACR (by default they are not).
 - `-r:`	If you use this parameter, script will request for your confirmation to apply operations after showing a summary in the console.
+- `--push`: If you use this parameter, builded Dockers will be pushed to ACR (by default they are not).
+- `--upd-only`: If you us this parameter, script will only update repos and install dependencies (no docker will be built/pushed).
+
+**IMPORTANT:** Parameters `--push` and `--upd-only` cannot be used in the same execution.
 				
-Modules (posible values for `<moduloi>`):
+B. Modules (posible values for `<moduloi>`):
 
 - `--iss-back`: *didi-issuer-back*.
 - `--iss-front`: *didi-issuer-front*.
