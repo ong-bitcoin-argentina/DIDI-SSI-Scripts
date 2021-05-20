@@ -20,14 +20,16 @@
 #	-maven:  apt-get install maven
 #	-nvm: 	 curl https://raw.githubusercontent.com/creationix/nvm/master/install.sh | bash
 #
-#-Parámetros (opcionales): [ <modulo1> <modulo2> ... <modulon> ] [ -r --push|--upd-only ]
+#-Parámetros (opcionales): [ <modulo1> <modulo2> ... <modulon> ] [ -v <ver> -r --push|--upd-only ]
 #				
 #	<moduloi>:  Módulo a procesar mediante el script.
+#	-v <ver>: 	Si se usa este parámetro, se ignorará la versión especificada en la variable de entorno "$DOK_VERSION" y se utilizará "<ver>" en su lugar. 
 #	-r:		    Si se usa este parámetro, el script solicitará confirmación del usuario para seguir, luego de haber mostrado el resumen de las operaciones que realizará.
 #	--push:     Si se usa este parámetro, se pushearán los Dockers al ACR (por defecto no se pushea).
 #	--upd-only:	Si se usa este parámetro, solo se actualizarán los repositorios de los módulos y se instalarán dependencias (no se buildearán/pushearán los Dockers).
 #
-#	IMPORTANTE: No se pueden usar los parámetros "--push" y "--upd-only" a la vez.
+#	IMPORTANTE-1: "<ver>" no puede empezar con "-".
+#	IMPORTANTE-2: No se pueden usar los parámetros "--push" y "--upd-only" a la vez.
 #				
 #-Módulos (posibles valores de <moduloi>):
 #
@@ -85,13 +87,15 @@ readonly OPT_MOD_SEMILLAS_BACK="--sem-be"; 			#"semillas-middleware".
 readonly OPT_MOD_SEMILLAS_FRONT="--sem-fe"; 		#"semillas-middleware-frontend".
 readonly OPT_MOD_SERVER="--server"; 				#"didi-server".
 
-readonly OPT_REQ_CONFIRM="-r" #Parámetro opcional para que el script solicite confirmación por consola para proseguir luego de mostrar el resúmen de las operaciones que efectuará.
-REQ_CONFIRM=false; 			  #Variable que dice si hay que solicitar confirmación del usuario. Si no se usa el parámetro "$OPT_REQ_CONFIRM", por defecto no la pide.
+readonly OPT_VER="-v"; #Parámetro opcional para especificar la versión que se utilizará desde CLI en vez de desde el archivo "update-and-push.env".
 
-readonly OPT_PUSH="--push";   #Parámetro opcional para pushear los Dockers al ACR luego de haberlos buildeado.
-PUSH=false;					  #Variable que dice si hay que pushear los Dockers. Si no se usa el parámetro "$OPT_PUSH", por defecto no se pushea.
+readonly OPT_REQ_CONFIRM="-r"; #Parámetro opcional para que el script solicite confirmación por consola para proseguir luego de mostrar el resúmen de las operaciones que efectuará.
+REQ_CONFIRM=false; 			   #Variable que dice si hay que solicitar confirmación del usuario. Si no se usa el parámetro "$OPT_REQ_CONFIRM", por defecto no la pide.
 
-readonly OPT_UPD_ONLY="--upd-only"	#Parámetro opcional para efectuar únicamente una actualización de los repos de los módulos e instalación de dependencias (sin buildear/pushear).
+readonly OPT_PUSH="--push";    #Parámetro opcional para pushear los Dockers al ACR luego de haberlos buildeado.
+PUSH=false;					   #Variable que dice si hay que pushear los Dockers. Si no se usa el parámetro "$OPT_PUSH", por defecto no se pushea.
+
+readonly OPT_UPD_ONLY="--upd-only";	#Parámetro opcional para efectuar únicamente una actualización de los repos de los módulos e instalación de dependencias (sin buildear/pushear).
 UPD_ONLY=false;						#Variable que dice si solamente hay que efectuar update de los repos. Si no se usa el parámetro "$OPT_UPD_ONLY", por defecto también se buildea.
 
 
@@ -109,6 +113,7 @@ function unsetVars() {
 
 	unset DOK_AZ_USER;
 	unset DOK_AZ_PASW;
+	unset DOK_VERSION;
 }
 
 
@@ -354,14 +359,16 @@ function printHelp() {
 	-maven: apt-get install maven
 	-nvm: curl https://raw.githubusercontent.com/creationix/nvm/master/install.sh | bash
 
--Parámetros (opcionales): [ <modulo1> <modulo2> ... <modulon> ] [ $OPT_REQ_CONFIRM $OPT_PUSH|$OPT_UPD_ONLY ]
+-Parámetros (opcionales): [ <modulo1> <modulo2> ... <modulon> ] [ $OPT_VER <ver> $OPT_REQ_CONFIRM $OPT_PUSH|$OPT_UPD_ONLY ]
 				
 	<moduloi>:  Módulo a procesar mediante el script.
+	$OPT_VER <ver>: Si se usa este parámetro, se ignorará la versión especificada en la variable de entorno \"DOK_VERSION\" y se utilizará \"<ver>\" en su lugar. 
 	$OPT_REQ_CONFIRM: Si se usa este parámetro, el script solicitará confirmación del usuario para seguir, luego de haber mostrado el resumen de las operaciones que realizará.
 	$OPT_PUSH: Si se usa este parámetro, se pushearán los Dockers al ACR (por defecto no se pushea).
 	$OPT_UPD_ONLY: Si se usa este parámetro, solo se actualizarán los repositorios de los módulos y se instalarán dependencias (no se buildearán/pushearán los Dockers).
 
-	IMPORTANTE: No se pueden usar los parámetros \"$OPT_PUSH\" y \"$OPT_UPD_ONLY\" a la vez.
+	IMPORTANTE-1: \"<ver>\" no puede empezar con \"-\".
+	IMPORTANTE-2: No se pueden usar los parámetros \"$OPT_PUSH\" y \"$OPT_UPD_ONLY\" a la vez.
 
 -Módulos (posibles valores de <moduloi>):
 
@@ -599,6 +606,7 @@ while [ $# -gt 0 ]; do
 		"$OPT_MOD_SEMILLAS_BACK") PROC_MOD+="$DOK_FILE_SEMILLAS_BACK|";;
 		"$OPT_MOD_SEMILLAS_FRONT") PROC_MOD+="$DOK_FILE_SEMILLAS_FRONT|";;
 		"$OPT_MOD_SERVER") PROC_MOD+="$DOK_FILE_SERVER|";;
+		"$OPT_VER") shift; DOK_VERSION="$1"; source update-and-push.env;;
 		"$OPT_REQ_CONFIRM") REQ_CONFIRM=true;;
 		"$OPT_PUSH") PUSH=true;;
 		"$OPT_UPD_ONLY") UPD_ONLY=true;;
@@ -610,6 +618,12 @@ done
 #Si se utilizaron los parámetros "$OPT_PUSH" y "$OPT_UPD_ONLY" a la vez, mostrar help y abortar la ejecución del script.
 if [ $PUSH = true ] && [ $UPD_ONLY = true ]; then
 	echo -e "\nNo se pueden utilizar los parámetros \"$OPT_PUSH\" y \"$OPT_UPD_ONLY\" a la vez!";
+	printHelp;
+fi 
+
+#Si se utilizó una versión con un "-" al principio (ya sea desde CLI o desde "update-and-push.env"), mostrar help y abortar la ejecución del script.
+if [[ $DOK_VERSION == -* ]]; then
+	echo -e "\nNo se puede utilizar una versión que comience con \"-\"! (si no se está especificando por CLI, revisar valor de variable \"DOK_VERSION\")";
 	printHelp;
 fi 
 
