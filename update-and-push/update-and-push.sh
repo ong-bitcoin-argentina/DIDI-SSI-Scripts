@@ -13,6 +13,7 @@
 #-Posarse sobre la carpeta en la que se encuentra el script desde la consola y ejecutarlo sin "sudo".
 #-Se requiere tener instalado:
 #
+#	-azure:	 apt-get install azure-cli
 #	-curl: 	 apt-get install curl
 #	-git: 	 apt-get install git
 #	-python: apt-get install python
@@ -352,6 +353,7 @@ function printHelp() {
 -Posarse sobre la carpeta en la que se encuentra el script desde la consola y ejecutarlo sin \"sudo\".
 -Se requiere tener instalado:
 
+	-azure: apt-get install azure-cli
 	-curl: apt-get install curl
 	-git: apt-get install git
 	-python: apt-get install python

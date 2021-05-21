@@ -18,6 +18,7 @@ This guide explains how to use different scripts in this repo.
 
 ### 2.1.1. Dependencies
 
+- *azure*: `apt-get install azure-cli`
 - *curl*: `apt-get install curl`
 - *git*: `apt-get install git`
 - *docker*:  https://docs.docker.com/engine/install/ubuntu/
