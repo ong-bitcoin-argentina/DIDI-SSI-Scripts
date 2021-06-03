@@ -167,7 +167,7 @@ function exitOnError() {
 #2.4. Nivel 3
 #############
 
-#Cambia a la carpeta "$1", pasa al branch "$REPO_BRANCH", hace un pull, crea el tag "$DOK_VERSION" (si no existe) y hace un push.
+#Cambia a la carpeta "$1", pasa al branch "$REPO_BRANCH" y hace un pull.
 function updateRepo() {
 
 	echo -e "
@@ -185,19 +185,8 @@ Updating/Building \"$1\"
 	#3. Actualizo el repo local.
 	git pull;
 	exitOnError $?;
-
-	#4. Creo el tag "$DOK_VERSION" (si no existe):
-	if [[ $(git tag -l |grep $DOK_VERSION) == "" ]]; then
-		git tag -a "$DOK_VERSION" -m "v$DOK_VERSION";
-		exitOnError $?;
-	fi
-
-	#5. Pusheo el último commit de "$REPO_BRANCH" al tag:
-	echo -e "Pushing to tag \"$DOK_VERSION\"...";
-	git push origin "$DOK_VERSION";
-	exitOnError $?;
 	
-	#Agrego el repositorio al arreglo "$alreadyUpdatedRepo", puesto que el mismo se ha actualizado:
+	#4. Agrego el repositorio al arreglo "$alreadyUpdatedRepo", puesto que el mismo se ha actualizado:
 	alreadyUpdatedRepo+="$1|";
 }
 
@@ -345,6 +334,46 @@ function updateAndBuildOneRepo() {
 
 	#4. Me paro en la carpeta que contiene este script:
 	cd "$SCRIPT_HOME";	
+}
+
+#Cambia a la carpeta "$1", pasa al branch "$REPO_BRANCH", crea el tag "$DOK_VERSION" (si no existe) y hace un push.
+function pushTagOneRepo() {
+
+	#Se efectúa la actualización e instalación de dependencias en el repo "$1", solo si no se efectuó con anterioridad en esta ejecución del script:
+	isRepoTagged=$(echo "$alreadyTaggedRepo" |grep "$1");
+
+	if [ "$isRepoTagged" = "" ]; then
+
+		echo -e "
+*****************************************************************
+Pushing \"$1\" (branch \"$REPO_BRANCH\") to tag \"DOK_VERSION\"		
+*****************************************************************\n";	
+
+		#1. Me paro en el repo sobre el que voy a trabajar:
+		cd "$1";
+
+		#2. Paso al branch "$REPO_BRANCH":
+		git checkout "$REPO_BRANCH";
+		exitOnError $?;
+
+		#3. Creo el tag "$DOK_VERSION" (si no existe):
+		if [[ $(git tag -l |grep $DOK_VERSION) == "" ]]; then
+			git tag -a "$DOK_VERSION" -m "v$DOK_VERSION";
+			exitOnError $?;
+		fi
+
+		#4. Pusheo el último commit de "$REPO_BRANCH" al tag:
+		echo -e "Pushing to tag \"$DOK_VERSION\"...";
+		git push origin "$DOK_VERSION";
+		exitOnError $?;
+	
+		#5. Agrego el repositorio al arreglo "$alreadyTaggedRepo", puesto que el mismo se ha actualizado:
+		alreadyTaggedRepo+="$1|";
+
+		#6. Me paro en la carpeta que contiene este script:
+		cd "$SCRIPT_HOME";	
+
+	fi
 }
 
 #Pushea el Docker "$1".
@@ -599,6 +628,38 @@ function updateAndBuild() {
 	done
 }
 
+#Para cada módulo en "$PROC_MOD":
+#
+#	-Crea el tag "$DOK_VERSION" (si no existe) y pushea el contenido de la rama "$REPO_BRANCH" hasta el último commit.
+function pushTag() {
+
+	if [ $UPD_ONLY = false ]; then
+
+		#Arreglo que contiene repos para los que se ha creado el tag "$DOK_VERSION" y se ha pusheado "$REPO_BRANCH".
+		alreadyTaggedRepo="";
+
+		#Recorro el arreglo "$PROC_MOD":
+	    let n=$(( $(echo "$PROC_MOD" |awk -F "|" '{print NF}') - 1 ));
+	    for (( i=1; i<=n; i++ ))
+	    do
+	    	#Valor de la posición actual de "$PROC_MOD":
+        	value=$(echo $PROC_MOD |awk -v ii=$i -F "|" '{print $ii}');
+		
+			#Update & Build del módulo "$value":
+			case "$value" in
+				"$DOK_FILE_ISSUER_MODULE_BACK") pushTagOneRepo "$REPO_ISSUER_MODULE_BACK";; 
+				"$DOK_FILE_ISSUER_MODULE_FRONT") pushTagOneRepo "$REPO_ISSUER_MODULE_FRONT";;
+				"$DOK_FILE_JWT_VALIDATOR_VIEWER") pushTagOneRepo "$REPO_JWT_VALIDATOR_VIEWER";;
+				"$DOK_FILE_MOURO") pushTagOneRepo "$REPO_MOURO";;
+				"$DOK_FILE_RONDA") pushTagOneRepo "$REPO_RONDA";;
+				"$DOK_FILE_SEMILLAS_BACK") pushTagOneRepo "$REPO_SEMILLAS_BACK";;
+				"$DOK_FILE_SEMILLAS_FRONT") pushTagOneRepo "$REPO_SEMILLAS_FRONT";;
+				"$DOK_FILE_SERVER") pushTagOneRepo "$REPO_SERVER";;
+			esac
+	    done
+	fi
+}
+
 #Para cada docker en "$PROC_DOCKER":
 #
 #	-Pushea el Docker buildeado al ACR.
@@ -696,8 +757,11 @@ clone;
 
 #3.3.2. Update and Build:
 updateAndBuild;
+
+#3.3.3. Push tag:
+pushTag;
 	
-#3.3.3. Push:
+#3.3.4. Push Docker:
 push;
 
 
