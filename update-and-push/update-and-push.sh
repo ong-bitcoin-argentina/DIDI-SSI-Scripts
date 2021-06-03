@@ -45,6 +45,15 @@
 #	--server:    "didi-server".
 #
 #	IMPORTANTE: Si se repiten módulos en los parámetros, el script los procesará una única vez.
+#
+#-Ejemplo: ./update-and-push.sh -v 0.5.0 -r --push --iss-back
+#
+#	->Ejecutando este comando:
+#
+#		-Se utilizará la versión 0.5.0 para los dockers a buildear y pushear.
+#		-Se creará el tag 0.5.0 (si no existe) y se pusheará hasta el último commit del branch "$REPO_BRANCH".
+#		-Se solicitará conirmación del usuario para seguir, luego de que el script muestre el resumen de operaciones que realizará.
+#		-Solo se procesará el módulo "didi-issuer-back".
 ###########################################################################################################################################
 
 
@@ -401,7 +410,16 @@ function printHelp() {
 	$OPT_MOD_SEMILLAS_FRONT: \"semillas-middleware-frontend\".
 	$OPT_MOD_SERVER: \"didi-server\".
 
-IMPORTANTE: Si se repiten módulos en los parámetros, el script los procesará una única vez.\n";
+IMPORTANTE: Si se repiten módulos en los parámetros, el script los procesará una única vez.
+
+-Ejemplo: ./update-and-push.sh $OPT_VER 0.5.0 $OPT_REQ_CONFIRM $OPT_PUSH $OPT_MOD_ISSUER_MODULE_FRONT
+
+	->Ejecutando este comando:
+
+		-Se utilizará la versión 0.5.0 para los dockers a buildear y pushear.
+		-Se creará el tag 0.5.0 (si no existe) y se pusheará hasta el último commit del branch \"$REPO_BRANCH\".
+		-Se solicitará conirmación del usuario para seguir, luego de que el script muestre el resumen de operaciones que realizará.
+		-Solo se procesará el módulo \"didi-issuer-back\".\n";
 
 	exitScript $EXIT_UNK;
 }

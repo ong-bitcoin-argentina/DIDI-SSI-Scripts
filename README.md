@@ -54,4 +54,15 @@ B. Modules (posible values for `<moduloi>`):
 
 **IMPORTANT:** If modules are repeated between parameters, this script will only process them only one time.
 
+### 2.1.3. Example
+
+`./update-and-push.sh -v 0.5.0 -r --push --iss-front`
+
+Running this command:
+
+- Version `0.5.0` will be used for Dockers.
+- Tag `0.5.0` will be created and last commit from branch `$REPO_BRANCH` will be pushed.
+- Confirmation from user will be asked after the script shows operations summary.
+- Only module *didi-issuer-back* will be processed.
+
 
