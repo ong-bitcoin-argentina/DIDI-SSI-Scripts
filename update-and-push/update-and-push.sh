@@ -5,6 +5,7 @@
 ###########################################################################################################################################
 #
 #-Script para actualización de repos de "DIDI/Semillas", y building y push de imágenes Docker.
+#-Se generará un tag llamado como la versión utilizada (variable "$DOK_VERSION" en ".env" o parámetro "-v"), el cual apuntará al último commit de "$REPO_BRANCH" (def. en ".env").
 #-Clonar repo "DIDI-SSI-Scripts" bajo la misma carpeta raiz donde están los directorios de los repos sobre los que se trabajará.
 #-Cambiar los valores "<CHANGE_ME>" del archivo "update-and-push.env.example" y guardar en un nuevo archivo llamado "update-and-push.env".
 #-No cambiar este script de lugar.
@@ -157,7 +158,7 @@ function exitOnError() {
 #2.4. Nivel 3
 #############
 
-#Cambia a la carpeta "$1", pasa al branch "develop" y hace un pull.
+#Cambia a la carpeta "$1", pasa al branch "$REPO_BRANCH", hace un pull, crea el tag "$DOK_VERSION" (si no existe) y hace un push.
 function updateRepo() {
 
 	echo -e "
@@ -165,10 +166,26 @@ function updateRepo() {
 Updating/Building \"$1\"				
 *****************************************************************\n";	
 
+	#1. Me paro en el repo sobre el que voy a trabajar:
 	cd "$1";
+
+	#2. Paso al branch "$REPO_BRANCH":
 	git checkout "$REPO_BRANCH";
 	exitOnError $?;
+
+	#3. Actualizo el repo local.
 	git pull;
+	exitOnError $?;
+
+	#4. Creo el tag "$DOK_VERSION" (si no existe):
+	if [[ $(git tag -l |grep $DOK_VERSION) == "" ]]; then
+		git tag -a "$DOK_VERSION" -m "v$DOK_VERSION";
+		exitOnError $?;
+	fi
+
+	#5. Pusheo el último commit de "$REPO_BRANCH" al tag:
+	echo -e "Pushing to tag \"$DOK_VERSION\"...";
+	git push origin "$DOK_VERSION";
 	exitOnError $?;
 	
 	#Agrego el repositorio al arreglo "$alreadyUpdatedRepo", puesto que el mismo se ha actualizado:
@@ -346,6 +363,7 @@ function printHelp() {
 *****************************************************************
 
 -Script para actualización de repos de \"DIDI/Semillas\", y building y push de imágenes Docker.
+-Se generará un tag llamado como la versión utilizada (variable \"DOK_VERSION\" en \".env\" o parámetro \"$OPT_VER\"), el cual apuntará al último commit de \"REPO_BRANCH\" (definida en \".env\").
 -Clonar repo \"DIDI-SSI-Scripts\" bajo la misma carpeta raiz donde están los directorios de los repos sobre los que se trabajará.
 -Cambiar los valores \"<CHANGE_ME>\" del archivo \"update-and-push.env.example\" y guardar en un nuevo archivo llamado \"update-and-push.env\".
 -No cambiar este script de lugar.
@@ -466,31 +484,34 @@ function printSumm() {
 Resumen de Operaciones:				
 *****************************************************************\n";
 
-	#1. Imprimo repos a clonar:
+	#1. Imprimo el branch/tag sobre el que se trabajará:
+	echo -e "1. Se pusheará el último commit del branch \"$REPO_BRANCH\" al tag \"$DOK_VERSION\"."
+
+	#2. Imprimo repos a clonar:
 	if [ "$PROC_CLONE_REPOS" != "" ]; then
-		echo -e "1. Se clonarán los siguientes repositorios:\n";
+		echo -e "\n2. Se clonarán los siguientes repositorios:\n";
 		printArr "$PROC_CLONE_REPOS";
 
 	else
-		echo "1. No se clonará ningún repositorio!";
+		echo -e "\n2. No se clonará ningún repositorio!";
 	fi
 
-	#2. Imprimo repos a actualizar:
-	echo -e "\n2. Se actualizarán y se instalarán dependencias para los siguientes repositorios:\n";
+	#3. Imprimo repos a actualizar:
+	echo -e "\n3. Se actualizarán y se instalarán dependencias para los siguientes repositorios:\n";
 	printArr "$PROC_UPD_REPOS";
 
-	#3. Imprimo Dockers a buildear/pushear (solo si no se utilizó el argumento "$OPT_UPD_ONLY"):
+	#4. Imprimo Dockers a buildear/pushear (solo si no se utilizó el argumento "$OPT_UPD_ONLY"):
 	if [ $UPD_ONLY = false ]; then
 		if [ $PUSH = true ]; then
-			echo -e "\n3. Se buildearán/pushearán los siguientes Docker:\n";
+			echo -e "\n4. Se buildearán/pushearán los siguientes Docker:\n";
 		else
-			echo -e "\n3. Se buildearán (no se pushearán!) los siguientes Docker:\n";
+			echo -e "\n4. Se buildearán (no se pushearán!) los siguientes Docker:\n";
 		fi
 
 		printArr "$PROC_DOCKER";
 
 	else
-		echo -e "\n3. No se buildeará/pusheará ningún Docker!\n";
+		echo -e "\n4. No se buildeará/pusheará ningún Docker!\n";
 	fi
 
 	echo -e "

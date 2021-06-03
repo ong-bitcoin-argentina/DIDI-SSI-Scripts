@@ -10,6 +10,7 @@ This guide explains how to use different scripts in this repo.
 ## 2.1. update-and-push
 
 - Script for repo updating of *DIDI/Semillas*, and Docker image building/pushing. 
+- A tag will be created, named as the version being used (variable `$DOK_VERSION` in `update-and-push.env` or `-v` parameter), wich will point to `$REPO_BRANCH` last commit (see `update-and-push.env`).
 - Clone repo *DIDI-SSI-Scripts* in the same folder where the other *ong-bitcoin-argentina* repos are.
 - Change *<CHANGE_ME>*  values in *update-and-push.env.example* and save changes in a new file named *update-and-push.env*.
 - Don't change the folder where this script lives.
