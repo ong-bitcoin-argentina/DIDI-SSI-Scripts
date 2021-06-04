@@ -208,7 +208,7 @@ function yarnInstall() {
 
 	npm install --global yarn
 	exitOnError $?;
-	yarn install --frozen-lockfile
+	yarn install #--frozen-lockfile
 	exitOnError $?;
 	yarn run build;
 	exitOnError $?;
