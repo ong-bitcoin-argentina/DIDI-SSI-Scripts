@@ -535,7 +535,11 @@ Resumen de Operaciones:
 *************************************************************************************\n";
 
 	#1. Imprimo el branch/tag sobre el que se trabajará:
-	echo -e "1. Se pusheará el último commit del branch \"$REPO_BRANCH\" al tag \"$DOK_VERSION\" por cada repo a actualizar."
+	if [ $UPD_ONLY = false ]; then
+		echo -e "1. Se pusheará el último commit del branch \"$REPO_BRANCH\" al tag \"$DOK_VERSION\" por cada repo a actualizar.";
+	else
+		echo -e "1. No se crearán tags en los repos ni se pushearán cambios!";
+	fi
 
 	#2. Imprimo repos a clonar:
 	if [ "$PROC_CLONE_REPOS" != "" ]; then
