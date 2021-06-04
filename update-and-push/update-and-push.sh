@@ -171,9 +171,9 @@ function exitOnError() {
 function updateRepo() {
 
 	echo -e "
-*****************************************************************
-Updating/Building \"$1\"				
-*****************************************************************\n";	
+*************************************************************************************
+Updating \"$1\"				
+*************************************************************************************\n";	
 
 	#1. Me paro en el repo sobre el que voy a trabajar:
 	cd "$1";
@@ -185,9 +185,6 @@ Updating/Building \"$1\"
 	#3. Actualizo el repo local.
 	git pull;
 	exitOnError $?;
-	
-	#4. Agrego el repositorio al arreglo "$alreadyUpdatedRepo", puesto que el mismo se ha actualizado:
-	alreadyUpdatedRepo+="$1|";
 }
 
 #Instala los paquetes mvn especificados en el repo.
@@ -232,6 +229,11 @@ function npmInstall() {
 #Buildea el Dockerfile en "$1" con el tag "$2".
 function buildDocker() {
 
+		echo -e "
+*************************************************************************************
+Building \"$2\"				
+*************************************************************************************\n";	
+
 	#1. Me paro en la carpeta que contiene el Dockerfile ("$1"):
 	cd "$SCRIPT_HOME";
 	cd "$1";
@@ -239,6 +241,37 @@ function buildDocker() {
 	#2. Buildeo el Docker con el tag "$2":
 	docker build . -t "$2";
 	exitOnError $?;
+}
+
+#Cambia a la carpeta "$1", pasa al branch "$REPO_BRANCH", crea el tag "$DOK_VERSION" (si no existe) y hace un push.
+function pushTagOneRepo() {
+
+	echo -e "
+*************************************************************************************
+Pushing \"$1\" (branch \"$REPO_BRANCH\") to tag \"$DOK_VERSION\"		
+*************************************************************************************\n";	
+
+	#1. Me paro en el repo sobre el que voy a trabajar:
+	cd "$SCRIPT_HOME";	
+	cd "$1";
+
+	#2. Paso al branch "$REPO_BRANCH":
+	git checkout "$REPO_BRANCH";
+	exitOnError $?;
+
+	#3. Creo el tag "$DOK_VERSION" (si no existe):
+	if [[ $(git tag -l |grep $DOK_VERSION) == "" ]]; then
+		git tag -a "$DOK_VERSION" -m "v$DOK_VERSION";
+		exitOnError $?;
+	fi
+
+	#4. Pusheo el último commit de "$REPO_BRANCH" al tag:
+	echo -e "Pushing to tag \"$DOK_VERSION\"...";
+	git push origin "$DOK_VERSION";
+	exitOnError $?;
+
+	#5. Agrego el repositorio al arreglo "$alreadyUpdatedRepo", puesto que el mismo se ha actualizado:
+	alreadyUpdatedRepo+="$1|";	
 }
 
 
@@ -283,9 +316,9 @@ function printArr() {
 function cloneOneRepo() {
 
 		echo -e "
-*****************************************************************
+*************************************************************************************
 Cloning \"$value\"				
-*****************************************************************\n";	
+*************************************************************************************\n";	
 
 	    cd "$REPO_HOME";
 	    git clone "$1";
@@ -293,7 +326,11 @@ Cloning \"$value\"
 	    cd "$SCRIPT_HOME";
 }
 
-#Cambia al branch "$REPO_BRANCH" del repo "$1", hace un pull, instala dependencias y buildea el Dockerfile en "$2" con el tag "$3".
+#-Cambia al branch "$REPO_BRANCH" del repo "$1". 
+#-Hace un pull. 
+#-Instala dependencias.
+#-Buildea el Dockerfile en "$2" con el tag "$3".
+#-Crea/pushea al tag "$DOK_VERSION" para el repo "$1" (branch "$REPO_BRANCH").
 function updateAndBuildOneRepo() {
 
 	#Se efectúa la actualización e instalación de dependencias en el repo "$1", solo si no se efectuó con anterioridad en esta ejecución del script:
@@ -327,62 +364,28 @@ function updateAndBuildOneRepo() {
 		fi
 	fi
 
-	#3. Buildeo el Dockerfile en "$2" con el tag "$3" (solo si no se utilizó el argumento "$OPT_UPD_ONLY").
 	if [ $UPD_ONLY = false ]; then
+
+		#3. Buildeo el Dockerfile en "$2" con el tag "$3" (solo si no se utilizó el argumento "$OPT_UPD_ONLY").
 		buildDocker "$2" "$3";
-	fi
 
-	#4. Me paro en la carpeta que contiene este script:
-	cd "$SCRIPT_HOME";	
-}
-
-#Cambia a la carpeta "$1", pasa al branch "$REPO_BRANCH", crea el tag "$DOK_VERSION" (si no existe) y hace un push.
-function pushTagOneRepo() {
-
-	#Se efectúa la actualización e instalación de dependencias en el repo "$1", solo si no se efectuó con anterioridad en esta ejecución del script:
-	isRepoTagged=$(echo "$alreadyTaggedRepo" |grep "$1");
-
-	if [ "$isRepoTagged" = "" ]; then
-
-		echo -e "
-*****************************************************************
-Pushing \"$1\" (branch \"$REPO_BRANCH\") to tag \"DOK_VERSION\"		
-*****************************************************************\n";	
-
-		#1. Me paro en el repo sobre el que voy a trabajar:
-		cd "$1";
-
-		#2. Paso al branch "$REPO_BRANCH":
-		git checkout "$REPO_BRANCH";
-		exitOnError $?;
-
-		#3. Creo el tag "$DOK_VERSION" (si no existe):
-		if [[ $(git tag -l |grep $DOK_VERSION) == "" ]]; then
-			git tag -a "$DOK_VERSION" -m "v$DOK_VERSION";
-			exitOnError $?;
+		#4. Creo/pusheo al tag "$DOK_VERSION" para el repo "$1" (branch "$REPO_BRANCH").
+		if [ "$isRepoUpdated" = "" ]; then
+			pushTagOneRepo "$1";
 		fi
-
-		#4. Pusheo el último commit de "$REPO_BRANCH" al tag:
-		echo -e "Pushing to tag \"$DOK_VERSION\"...";
-		git push origin "$DOK_VERSION";
-		exitOnError $?;
-	
-		#5. Agrego el repositorio al arreglo "$alreadyTaggedRepo", puesto que el mismo se ha actualizado:
-		alreadyTaggedRepo+="$1|";
-
-		#6. Me paro en la carpeta que contiene este script:
-		cd "$SCRIPT_HOME";	
-
 	fi
+
+	#5. Me paro en la carpeta que contiene este script:
+	cd "$SCRIPT_HOME";	
 }
 
 #Pushea el Docker "$1".
 function pushOneDocker() {
 
 	echo -e "
-*****************************************************************
+*************************************************************************************
 Pushing \"$1\"				
-*****************************************************************\n";	
+*************************************************************************************\n";	
 
 	docker push "$1";
 	exitOnError $?;
@@ -396,9 +399,9 @@ Pushing \"$1\"
 function printHelp() {
 
 	echo -e "
-*****************************************************************
+*************************************************************************************
 \"update-and-push.sh\"				
-*****************************************************************
+*************************************************************************************
 
 -Script para actualización de repos de \"DIDI/Semillas\", y building y push de imágenes Docker.
 -Se generará un tag llamado como la versión utilizada (variable \"DOK_VERSION\" en \".env\" o parámetro \"$OPT_VER\"), el cual apuntará al último commit de \"REPO_BRANCH\" (definida en \".env\").
@@ -527,12 +530,12 @@ function getDocktoProc() {
 function printSumm() {
 
 	echo -e "
-*****************************************************************
+*************************************************************************************
 Resumen de Operaciones:				
-*****************************************************************\n";
+*************************************************************************************\n";
 
 	#1. Imprimo el branch/tag sobre el que se trabajará:
-	echo -e "1. Se pusheará el último commit del branch \"$REPO_BRANCH\" al tag \"$DOK_VERSION\"."
+	echo -e "1. Se pusheará el último commit del branch \"$REPO_BRANCH\" al tag \"$DOK_VERSION\" por cada repo a actualizar."
 
 	#2. Imprimo repos a clonar:
 	if [ "$PROC_CLONE_REPOS" != "" ]; then
@@ -562,7 +565,7 @@ Resumen de Operaciones:
 	fi
 
 	echo -e "
-*****************************************************************\n";
+*************************************************************************************\n";
 
 	#Si el script fue ejecutado con el parámetro "$OPT_REQ_CONFIRM", se pregunta al usuario si quiere continuar:
 	if [ $REQ_CONFIRM = true ]; then
@@ -601,6 +604,7 @@ function clone() {
 #
 #	-Actualiza el repo correspondiente en la rama  "$REPO_BRANCH"
 #	-Instala dependencias.
+#	-Crea el tag "$DOK_VERSION" (si no existe) y pushea el contenido de la rama "$REPO_BRANCH" hasta el último commit.
 #	-Buildea Dockerfiles.
 function updateAndBuild() {
 
@@ -626,38 +630,6 @@ function updateAndBuild() {
 			"$DOK_FILE_SERVER") updateAndBuildOneRepo "$REPO_SERVER" "$DOK_FILE_SERVER" "$DOK_TAG_SERVER";;
 		esac
 	done
-}
-
-#Para cada módulo en "$PROC_MOD":
-#
-#	-Crea el tag "$DOK_VERSION" (si no existe) y pushea el contenido de la rama "$REPO_BRANCH" hasta el último commit.
-function pushTag() {
-
-	if [ $UPD_ONLY = false ]; then
-
-		#Arreglo que contiene repos para los que se ha creado el tag "$DOK_VERSION" y se ha pusheado "$REPO_BRANCH".
-		alreadyTaggedRepo="";
-
-		#Recorro el arreglo "$PROC_MOD":
-	    let n=$(( $(echo "$PROC_MOD" |awk -F "|" '{print NF}') - 1 ));
-	    for (( i=1; i<=n; i++ ))
-	    do
-	    	#Valor de la posición actual de "$PROC_MOD":
-        	value=$(echo $PROC_MOD |awk -v ii=$i -F "|" '{print $ii}');
-		
-			#Update & Build del módulo "$value":
-			case "$value" in
-				"$DOK_FILE_ISSUER_MODULE_BACK") pushTagOneRepo "$REPO_ISSUER_MODULE_BACK";; 
-				"$DOK_FILE_ISSUER_MODULE_FRONT") pushTagOneRepo "$REPO_ISSUER_MODULE_FRONT";;
-				"$DOK_FILE_JWT_VALIDATOR_VIEWER") pushTagOneRepo "$REPO_JWT_VALIDATOR_VIEWER";;
-				"$DOK_FILE_MOURO") pushTagOneRepo "$REPO_MOURO";;
-				"$DOK_FILE_RONDA") pushTagOneRepo "$REPO_RONDA";;
-				"$DOK_FILE_SEMILLAS_BACK") pushTagOneRepo "$REPO_SEMILLAS_BACK";;
-				"$DOK_FILE_SEMILLAS_FRONT") pushTagOneRepo "$REPO_SEMILLAS_FRONT";;
-				"$DOK_FILE_SERVER") pushTagOneRepo "$REPO_SERVER";;
-			esac
-	    done
-	fi
 }
 
 #Para cada docker en "$PROC_DOCKER":
@@ -755,13 +727,10 @@ SECONDS=0;
 #3.3.1. Clone:
 clone;
 
-#3.3.2. Update and Build:
+#3.3.2. Update Repos, Push Tag & Docker Build:
 updateAndBuild;
-
-#3.3.3. Push tag:
-pushTag;
 	
-#3.3.4. Push Docker:
+#3.3.3. Push Docker:
 push;
 
 
