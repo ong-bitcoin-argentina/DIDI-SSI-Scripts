@@ -27,7 +27,7 @@ This guide explains how to use different scripts in this repo.
 - *maven*: `apt-get install maven`
 - *nvm*: `curl https://raw.githubusercontent.com/creationix/nvm/master/install.sh | bash`
 
-**IMPORTANT:** `docker` must be accessible using the non-root user which will run this script. For doing that see **Manage Docker as a non-root user** on this link: https://docs.docker.com/engine/install/linux-postinstall/
+**IMPORTANT:** `docker` must be accessible using the non-root user which will run this script without using `sudo`. For doing that see **Manage Docker as a non-root user** on this link: https://docs.docker.com/engine/install/linux-postinstall/
 
 ### 2.1.2. Parameters
 
