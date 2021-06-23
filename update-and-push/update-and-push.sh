@@ -426,7 +426,7 @@ function printHelp() {
 	-nvm: curl https://raw.githubusercontent.com/creationix/nvm/master/install.sh | bash
 
 	IMPORTANTE: docker tiene que ser accesible para el mismo non-root user que será utilizado para correr este script (sin usar sudo). Ver el item \"Manage Docker as a non-root
-	 user\" en el siguiente link: https://docs.docker.com/engine/install/linux-postinstall/
+	user\" en el siguiente link: https://docs.docker.com/engine/install/linux-postinstall/
 
 -Parámetros (opcionales): [ <modulo1> <modulo2> ... <modulon> ] [ $OPT_VER <ver> $OPT_REQ_CONFIRM $OPT_PUSH|$OPT_UPD_ONLY ]
 				
