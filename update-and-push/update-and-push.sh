@@ -14,13 +14,17 @@
 #-Posarse sobre la carpeta en la que se encuentra el script desde la consola y ejecutarlo sin "sudo".
 #-Se requiere tener instalado:
 #
-#	-azure:	 apt-get install azure-cli
-#	-curl: 	 apt-get install curl
-#	-git: 	 apt-get install git
+#	-azure: apt-get install azure-cli
+#	-curl: apt-get install curl
+#	-git: apt-get install git
+#	-docker: https://docs.docker.com/engine/install/ubuntu/
 #	-python: apt-get install python
-#	-JDK11:  apt install default-jdk
-#	-maven:  apt-get install maven
-#	-nvm: 	 curl https://raw.githubusercontent.com/creationix/nvm/master/install.sh | bash
+#	-JDK11: apt install default-jdk
+#	-maven: apt-get install maven
+#	-nvm: curl https://raw.githubusercontent.com/creationix/nvm/master/install.sh | bash
+#
+#	-IMPORTANTE: docker tiene que ser accesible para el mismo non-root user que será utilizado para correr este script (sin usar sudo). Ver el item "Manage Docker as a non-root user"
+#	en el siguiente link: https://docs.docker.com/engine/install/linux-postinstall/
 #
 #-Parámetros (opcionales): [ <modulo1> <modulo2> ... <modulon> ] [ -v <ver> -r --push|--upd-only ]
 #				
@@ -415,10 +419,14 @@ function printHelp() {
 	-azure: apt-get install azure-cli
 	-curl: apt-get install curl
 	-git: apt-get install git
+	-docker: https://docs.docker.com/engine/install/ubuntu/
 	-python: apt-get install python
 	-JDK11: apt install default-jdk
 	-maven: apt-get install maven
 	-nvm: curl https://raw.githubusercontent.com/creationix/nvm/master/install.sh | bash
+
+	-IMPORTANTE: docker tiene que ser accesible para el mismo non-root user que será utilizado para correr este script (sin usar sudo). Ver el item \"Manage Docker as a non-root
+	 user\" en el siguiente link: https://docs.docker.com/engine/install/linux-postinstall/
 
 -Parámetros (opcionales): [ <modulo1> <modulo2> ... <modulon> ] [ $OPT_VER <ver> $OPT_REQ_CONFIRM $OPT_PUSH|$OPT_UPD_ONLY ]
 				
