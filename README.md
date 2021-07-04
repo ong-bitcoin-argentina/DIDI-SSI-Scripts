@@ -18,14 +18,14 @@ This guide explains how to use different scripts in this repo.
 
 ### 2.1.1. Dependencies
 
-- *azure*: `apt-get install azure-cli`
-- *curl*: `apt-get install curl`
-- *git*: `apt-get install git`
+- *azure*: `sudo apt-get install azure-cli`
+- *curl*: `sudo apt-get install curl`
+- *git*: `sudo apt-get install git`
 - *docker*:  https://docs.docker.com/engine/install/ubuntu/
-- *python*: `apt-get install python`
-- *JDK11*: `apt install default-jdk`
-- *maven*: `apt-get install maven`
-- *nvm*: `curl https://raw.githubusercontent.com/creationix/nvm/master/install.sh | bash`
+- *python*: `sudo apt-get install python`
+- *JDK11*: `sudo apt install default-jdk`
+- *maven*: `sudo apt-get install maven`
+- *nvm*: `curl https://raw.githubusercontent.com/creationix/nvm/master/install.sh | bash && source ~/.profile`
 
 **IMPORTANT:** `docker` must be accessible using the non-root user which will run this script without using `sudo`. For doing that see **Manage Docker as a non-root user** on this link: https://docs.docker.com/engine/install/linux-postinstall/
 
