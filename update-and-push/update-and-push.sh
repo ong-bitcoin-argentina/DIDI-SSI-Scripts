@@ -4,8 +4,7 @@
 #"update-and-push.sh"				
 ###########################################################################################################################################
 #
-#-Script para actualización de repos de "DIDI/Semillas", y building y push de imágenes Docker.
-#-Se generará un tag llamado como la versión utilizada (variable "$DOK_VERSION" en ".env" o parámetro "-v"), el cual apuntará al último commit de "$REPO_BRANCH" (def. en ".env").
+#-Script para actualización de repos de "DIDI/Semillas", generación de tags, y building y push de imágenes Docker.
 #-Clonar repo "DIDI-SSI-Scripts" bajo la misma carpeta raiz donde están los directorios de los repos sobre los que se trabajará.
 #-Cambiar los valores "<CHANGE_ME>" del archivo "update-and-push.env.example" y guardar en un nuevo archivo llamado "update-and-push.env".
 #-No cambiar este script de lugar.
@@ -14,28 +13,32 @@
 #-Posarse sobre la carpeta en la que se encuentra el script desde la consola y ejecutarlo sin "sudo".
 #-Se requiere tener instalado:
 #
-#	-azure: apt-get install azure-cli
-#	-curl: apt-get install curl
-#	-git: apt-get install git
+#	-azure: sudo apt-get install azure-cli
+#	-build-essential: sudo apt-get install build-essential
+#	-curl: sudo apt-get install curl
+#	-git: sudo apt-get install git
 #	-docker: https://docs.docker.com/engine/install/ubuntu/
-#	-python: apt-get install python
-#	-JDK11: apt install default-jdk
-#	-maven: apt-get install maven
-#	-nvm: curl https://raw.githubusercontent.com/creationix/nvm/master/install.sh | bash
+#	-python: sudo apt-get install python
+#	-JDK11: sudo apt install default-jdk
+#	-maven: sudo apt-get install maven
+#	-nvm: curl https://raw.githubusercontent.com/creationix/nvm/master/install.sh | bash && source ~/.profile
 #
-#	IMPORTANTE: docker tiene que ser accesible para el mismo non-root user que será utilizado para correr este script (sin usar sudo). Ver el item "Manage Docker as a non-root user"
+#	IMPORTANTE: "docker" tiene que ser accesible para el mismo non-root user que será utilizado para correr este script (sin usar sudo). Ver el item "Manage Docker as a non-root user"
 #	en el siguiente link: https://docs.docker.com/engine/install/linux-postinstall/
 #
-#-Parámetros (opcionales): [ <modulo1> <modulo2> ... <modulon> ] [ -v <ver> -r --push|--upd-only ]
+#-Parámetros (opcionales): [ <modulo1> <modulo2> ... <modulon> ] [ -v <ver> -r --upd-only|--push ]
 #				
 #	<moduloi>:  Módulo a procesar mediante el script.
 #	-v <ver>: 	Si se usa este parámetro, se ignorará la versión especificada en la variable de entorno "$DOK_VERSION" y se utilizará "<ver>" en su lugar. 
 #	-r:		    Si se usa este parámetro, el script solicitará confirmación del usuario para seguir, luego de haber mostrado el resumen de las operaciones que realizará.
-#	--push:     Si se usa este parámetro, se pushearán los Dockers al ACR (por defecto no se pushea).
-#	--upd-only:	Si se usa este parámetro, solo se actualizarán los repositorios de los módulos y se instalarán dependencias (no se buildearán/pushearán los Dockers).
+#	--upd-only:	Si se usa este parámetro, solo se actualizarán los repositorios de los módulos y se instalarán dependencias (no se buildearán/pushearán los Dockers ni se generarán tags).	
+#	--push:     Si se usa este parámetro:
+#					a. Se generará un tag llamado como la versión utilizada (variable "$DOK_VERSION" en ".env" o parámetro "-v"), el cual apuntará al último commit de "$REPO_BRANCH" (def. en ".env").
+#					b. Se pushearán los Dockers al ACR (por defecto no se pushea).
 #
 #	IMPORTANTE-1: "<ver>" no puede empezar con "-".
 #	IMPORTANTE-2: No se pueden usar los parámetros "--push" y "--upd-only" a la vez.
+#	IMPORTANTE-3: Por defecto, no se generan tags ni se pushean las imágenes Docker. Para eso hay que usar el parámetro "--push".
 #				
 #-Módulos (posibles valores de <moduloi>):
 #
@@ -55,8 +58,9 @@
 #	->Ejecutando este comando:
 #
 #		-Se utilizará la versión 0.5.0 para los dockers a buildear y pushear.
-#		-Se creará el tag 0.5.0 (si no existe) y se pusheará hasta el último commit del branch "$REPO_BRANCH".
 #		-Se solicitará confirmación del usuario para seguir, luego de que el script muestre el resumen de operaciones que realizará.
+#		-Se pushearán la imágenes Docker que se buildeen al ACR.
+#		-Se creará el tag 0.5.0 (si no existe) y se pusheará hasta el último commit del branch "$REPO_BRANCH".
 #		-Solo se procesará el módulo "didi-issuer-back".
 ###########################################################################################################################################
 
@@ -374,7 +378,7 @@ function updateAndBuildOneRepo() {
 		buildDocker "$2" "$3";
 
 		#4. Creo/pusheo al tag "$DOK_VERSION" para el repo "$1" (branch "$REPO_BRANCH").
-		if [ "$isRepoUpdated" = "" ]; then
+		if [ "$isRepoUpdated" = "" ] && [ $PUSH = true ]; then
 			pushTagOneRepo "$1";
 		fi
 	fi
@@ -407,8 +411,7 @@ function printHelp() {
 \"update-and-push.sh\"				
 *************************************************************************************
 
--Script para actualización de repos de \"DIDI/Semillas\", y building y push de imágenes Docker.
--Se generará un tag llamado como la versión utilizada (variable \"DOK_VERSION\" en \".env\" o parámetro \"$OPT_VER\"), el cual apuntará al último commit de \"REPO_BRANCH\" (definida en \".env\").
+-Script para actualización de repos de \"DIDI/Semillas\", generación de tags, y building y push de imágenes Docker.
 -Clonar repo \"DIDI-SSI-Scripts\" bajo la misma carpeta raiz donde están los directorios de los repos sobre los que se trabajará.
 -Cambiar los valores \"<CHANGE_ME>\" del archivo \"update-and-push.env.example\" y guardar en un nuevo archivo llamado \"update-and-push.env\".
 -No cambiar este script de lugar.
@@ -416,28 +419,31 @@ function printHelp() {
 -Posarse sobre la carpeta en la que se encuentra el script desde la consola y ejecutarlo sin \"sudo\".
 -Se requiere tener instalado:
 
-	-azure: apt-get install azure-cli
-	-curl: apt-get install curl
-	-git: apt-get install git
+	-azure: sudo apt-get install azure-cli
+	-build-essential: sudo apt-get install build-essential
+	-curl: sudo apt-get install curl
+	-git: sudo apt-get install git
 	-docker: https://docs.docker.com/engine/install/ubuntu/
-	-python: apt-get install python
-	-JDK11: apt install default-jdk
-	-maven: apt-get install maven
-	-nvm: curl https://raw.githubusercontent.com/creationix/nvm/master/install.sh | bash
+	-python: sudo apt-get install python
+	-JDK11: sudo apt install default-jdk
+	-maven: sudo apt-get install maven
+	-nvm: curl https://raw.githubusercontent.com/creationix/nvm/master/install.sh | bash && source ~/.profile
 
-	IMPORTANTE: docker tiene que ser accesible para el mismo non-root user que será utilizado para correr este script (sin usar sudo). Ver el item \"Manage Docker as a non-root
-	user\" en el siguiente link: https://docs.docker.com/engine/install/linux-postinstall/
+	IMPORTANTE: \"docker\" tiene que ser accesible para el mismo non-root user que será utilizado para correr este script (sin usar sudo). Ver el item \"Manage Docker as a non-root user\" en el siguiente link: https://docs.docker.com/engine/install/linux-postinstall/
 
--Parámetros (opcionales): [ <modulo1> <modulo2> ... <modulon> ] [ $OPT_VER <ver> $OPT_REQ_CONFIRM $OPT_PUSH|$OPT_UPD_ONLY ]
+-Parámetros (opcionales): [ <modulo1> <modulo2> ... <modulon> ] [ $OPT_VER <ver> $OPT_REQ_CONFIRM $OPT_UPD_ONLY|$OPT_PUSH ]
 				
 	<moduloi>:  Módulo a procesar mediante el script.
 	$OPT_VER <ver>: Si se usa este parámetro, se ignorará la versión especificada en la variable de entorno \"DOK_VERSION\" y se utilizará \"<ver>\" en su lugar. 
 	$OPT_REQ_CONFIRM: Si se usa este parámetro, el script solicitará confirmación del usuario para seguir, luego de haber mostrado el resumen de las operaciones que realizará.
-	$OPT_PUSH: Si se usa este parámetro, se pushearán los Dockers al ACR (por defecto no se pushea).
-	$OPT_UPD_ONLY: Si se usa este parámetro, solo se actualizarán los repositorios de los módulos y se instalarán dependencias (no se buildearán/pushearán los Dockers).
+	$OPT_UPD_ONLY: Si se usa este parámetro, solo se actualizarán los repositorios de los módulos y se instalarán dependencias (no se buildearán/pushearán los Dockers ni se generarán tags).
+	$OPT_PUSH: Si se usa este parámetro:
+				a. Se generará un tag llamado como la versión utilizada (variable \"DOK_VERSION\" en \".env\" o parámetro \"$OPT_VER\"), el cual apuntará al último commit de \"REPO_BRANCH\" (def. en \".env\").
+				b. Se pushearán los Dockers al ACR.
 
 	IMPORTANTE-1: \"<ver>\" no puede empezar con \"-\".
 	IMPORTANTE-2: No se pueden usar los parámetros \"$OPT_PUSH\" y \"$OPT_UPD_ONLY\" a la vez.
+	IMPORTANTE-3: Por defecto, no se generan tags ni se pushean las imágenes Docker. Para eso hay que usar el parámetro \"$OPT_PUSH\".
 
 -Módulos (posibles valores de <moduloi>):
 
@@ -457,8 +463,9 @@ IMPORTANTE: Si se repiten módulos en los parámetros, el script los procesará 
 	->Ejecutando este comando:
 
 		-Se utilizará la versión 0.5.0 para los dockers a buildear y pushear.
-		-Se creará el tag 0.5.0 (si no existe) y se pusheará hasta el último commit del branch \"$REPO_BRANCH\".
 		-Se solicitará confirmación del usuario para seguir, luego de que el script muestre el resumen de operaciones que realizará.
+		-Se pushearán la imágenes Docker que se buildeen al ACR.
+		-Se creará el tag 0.5.0 (si no existe) y se pusheará hasta el último commit del branch \"REPO_BRANCH\".
 		-Solo se procesará el módulo \"didi-issuer-back\".\n";
 
 	exitScript $EXIT_UNK;
@@ -543,7 +550,7 @@ Resumen de Operaciones:
 *************************************************************************************\n";
 
 	#1. Imprimo el branch/tag sobre el que se trabajará:
-	if [ $UPD_ONLY = false ]; then
+	if [ $UPD_ONLY = false ] && [ $PUSH = true ]; then
 		echo -e "1. Se pusheará el último commit del branch \"$REPO_BRANCH\" al tag \"$DOK_VERSION\" por cada repo a actualizar.";
 	else
 		echo -e "1. No se crearán tags en los repos ni se pushearán cambios!";
