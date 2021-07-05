@@ -18,7 +18,7 @@ This guide explains how to use different scripts in this repo.
 ### 2.1.1. Dependencies
 
 - *azure*: `sudo apt-get install azure-cli`
-- *build-essential* `sudo apt-get install build-essential`
+- *build-essential*: `sudo apt-get install build-essential`
 - *curl*: `sudo apt-get install curl`
 - *git*: `sudo apt-get install git`
 - *docker*:  https://docs.docker.com/engine/install/ubuntu/
