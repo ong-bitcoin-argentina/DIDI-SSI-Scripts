@@ -320,6 +320,20 @@ function printArr() {
     done
 }
 
+#Devuelve el path al repo "$1", pero solo hasta el root folder. 
+#Ej: La función recibe el parámetro "../../DIDI-Ronda/api" y devuelve "../../DIDI-Ronda".
+function getRepoRootPath() {
+
+	#Ej: "DIDI-Ronda/api"
+    repoWithoutHome=${1#"$REPO_HOME/"};
+
+    #Ej: "DIDI-Ronda"
+    repoWithoutHomeOnlyRoot=$(echo "$repoWithoutHome" |awk -F "/" '{print $1}');
+
+    #Ej: "../../DIDI-Ronda"
+	echo "$REPO_HOME/$repoWithoutHomeOnlyRoot";
+}
+
 #Clona el repo bajo "$REPO_HOME" desde GitHub ("$1").
 function cloneOneRepo() {
 
@@ -607,14 +621,14 @@ function clone() {
 
 		#Clone del repo "$value":
 		case "$value" in
-			"$REPO_ISSUER_MODULE_BACK") cloneOneRepo "$GITHUB_ISSUER_MODULE_BACK";; 
-			"$REPO_ISSUER_MODULE_FRONT") cloneOneRepo "$GITHUB_ISSUER_MODULE_FRONT";;
-			"$REPO_JWT_VALIDATOR_VIEWER") cloneOneRepo "$GITHUB_JWT_VALIDATOR_VIEWER";;
-			"$REPO_MOURO") cloneOneRepo "$GITHUB_MOURO";;
-			"$REPO_RONDA") cloneOneRepo "$GITHUB_RONDA";;
-			"$REPO_SEMILLAS_BACK") cloneOneRepo "$GITHUB_SEMILLAS_BACK";;
-			"$REPO_SEMILLAS_FRONT") cloneOneRepo "$GITHUB_SEMILLAS_FRONT";;
-			"$REPO_SERVER") cloneOneRepo "$GITHUB_SERVER";;
+			"$(getRepoRootPath $REPO_ISSUER_MODULE_BACK)") cloneOneRepo "$GITHUB_ISSUER_MODULE_BACK";; 
+			"$(getRepoRootPath $REPO_ISSUER_MODULE_FRONT)") cloneOneRepo "$GITHUB_ISSUER_MODULE_FRONT";;
+			"$(getRepoRootPath $REPO_JWT_VALIDATOR_VIEWER)") cloneOneRepo "$GITHUB_JWT_VALIDATOR_VIEWER";;
+			"$(getRepoRootPath $REPO_MOURO)") cloneOneRepo "$GITHUB_MOURO";;
+			"$(getRepoRootPath $REPO_RONDA)") cloneOneRepo "$GITHUB_RONDA";;
+			"$(getRepoRootPath $REPO_SEMILLAS_BACK)") cloneOneRepo "$GITHUB_SEMILLAS_BACK";;
+			"$(getRepoRootPath $REPO_SEMILLAS_FRONT)") cloneOneRepo "$GITHUB_SEMILLAS_FRONT";;
+			"$(getRepoRootPath $REPO_SERVER)") cloneOneRepo "$GITHUB_SERVER";;
 		esac
 	done
 }
