@@ -1,0 +1,19 @@
+{
+  "name": "@proyecto-didi/indicadores",
+  "version": "1.0.0",
+  "description": "Reporte indicdores Proyecto DIDI",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "blockchain",
+    "ssi"
+  ],
+  "author": "Equipo desarrollo Proyecto DIDI",
+  "license": "SEE LICENCE IN LICENSE",
+  "dependencies": {
+    "dotenv": "^10.0.0",
+    "web3": "^3.0.0-rc.5"
+  }
+}
