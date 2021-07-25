@@ -191,7 +191,7 @@ Updating \"$1\"
 	exitOnError $?;
 
 	#3. Actualizo el repo local.
-	git pull;
+	git pull origin "$REPO_BRANCH";
 	exitOnError $?;
 }
 
