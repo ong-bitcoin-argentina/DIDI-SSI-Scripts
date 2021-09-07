@@ -1,0 +1,25 @@
+version: "3"
+services:
+  rsk-testnet:
+    image: testnet:latest
+    restart: always
+    volumes:
+      - rsk_db:/var/lib/rsk/database
+      - rsk_cfg:/etc/rsk
+    ports:
+      - 4444:4444
+      - 50505:50505
+
+volumes:
+    rsk_db:
+        driver: local
+        driver_opts:
+            o: bind
+            type: none
+            device: /rsk/database
+    rsk_cfg:
+        driver: local
+        driver_opts:
+            o: bind
+            type: none
+            device: /rsk/conf
