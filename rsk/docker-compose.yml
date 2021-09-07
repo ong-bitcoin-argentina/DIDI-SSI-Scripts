@@ -2,6 +2,9 @@ version: "3"
 services:
   rsk-testnet:
     image: testnet:latest
+    build:
+        context: .
+        dockerfile: Dockerfile.Testnet
     restart: always
     volumes:
       - rsk_db:/var/lib/rsk/database
