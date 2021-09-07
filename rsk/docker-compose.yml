@@ -1,0 +1,10 @@
+version: "3"
+services:
+  rsk-testnet:
+    image: testnet:latest
+    volumes:
+      - "/rsk/database:/var/lib/rsk/database"
+      - "/rsk/conf:/etc/rsk"
+    ports:
+      - 4444:4444
+      - 50505:50505
