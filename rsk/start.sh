@@ -16,6 +16,28 @@
 #Importa las variables en el archivo "env":
 source .env;
 
+##############
+#2. Constants#
+##############
+
+readonly EXIT_OK=0;	 #Exit Code: OK.
+
+##############
+#3. Functions#
+##############
+
+#Sale del script si el comando "${@:2}" tiene un exit code ("$1") distinto de "$EXIT_OK".
+function exitOnError() {
+
+    exitCode=$1;
+
+    if [ $exitCode -ne $EXIT_OK ]; then
+
+        echo -e "\nLast command failed with code $exitCode.";
+        exit $exitCode;
+    fi
+}
+
 #########
 #2. Main#
 #########
@@ -23,6 +45,7 @@ source .env;
 #rsk_db: Database volume.
 if [ ! -d $HOST_RSK_DB_PATH ]; then
   mkdir -p $HOST_RSK_DB_PATH;
+  exitOnError $?;
   chown -f 888:888 $HOST_RSK_DB_PATH;
   chmod 775 $HOST_RSK_DB_PATH;
 fi
@@ -30,8 +53,14 @@ fi
 #rsk_cfg: Config files volume.
 if [ ! -d $HOST_RSK_CFG_PATH ]; then
   mkdir -p $HOST_RSK_CFG_PATH;
+  exitOnError $?;
   chown -f 0:0 $HOST_RSK_CFG_PATH;
   chmod 775 $HOST_RSK_CFG_PATH;
 fi
+
+#Build/Run Docker.
+docker-compose up -d
+
+exit $?
 
 
