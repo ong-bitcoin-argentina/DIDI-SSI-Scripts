@@ -3,15 +3,15 @@ services:
   rsk-testnet:
     image: testnet:latest
     build:
-        context: .
-        dockerfile: Dockerfile.Testnet
+        context: ${DOK_FILE_CONTEXT}
+        dockerfile: ${DOK_FILE_NAME}
     restart: always
     volumes:
-      - rsk_db:/var/lib/rsk/database
-      - rsk_cfg:/etc/rsk
+      - rsk_db:${DOK_RSK_DB_PATH}
+      - rsk_cfg:${DOK_RSK_CFG_PATH}
     ports:
-      - 4444:4444
-      - 50505:50505
+      - ${RSK_HTTP_PORT}:4444
+      - ${RSK_PEER_PORT}:50505
 
 volumes:
     rsk_db:
@@ -19,10 +19,12 @@ volumes:
         driver_opts:
             o: bind
             type: none
-            device: /rsk/database
+            device: ${HOST_RSK_DB_PATH}
     rsk_cfg:
         driver: local
         driver_opts:
             o: bind
             type: none
-            device: /rsk/conf
+            device: ${HOST_RSK_CFG_PATH}
+
+
