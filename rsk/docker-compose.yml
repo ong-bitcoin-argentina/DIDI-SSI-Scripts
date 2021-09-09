@@ -3,8 +3,8 @@ services:
   rsk-testnet:
     image: testnet:latest
     build:
-        context: .
-        dockerfile: Dockerfile.Testnet
+        context: ${DOK_FILE_CONTEXT}
+        dockerfile: ${DOK_FILE_NAME}
     restart: always
     volumes:
       - rsk_db:${DOK_RSK_DB_PATH}
