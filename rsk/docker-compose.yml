@@ -5,7 +5,7 @@ services:
     build:
         context: ${DOK_FILE_CONTEXT}
         dockerfile: ${DOK_FILE_NAME}
-    restart: always
+    restart: unless-stopped
     volumes:
       - rsk_db:${DOK_RSK_DB_PATH}
       - rsk_cfg:${DOK_RSK_CFG_PATH}
