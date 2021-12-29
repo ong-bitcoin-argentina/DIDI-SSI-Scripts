@@ -10,7 +10,7 @@ This guide explains how to use different scripts in this repo.
 
 - Script for repo updating of *DIDI/Semillas*, tag creation and Docker image building/pushing. 
 - Clone repo *DIDI-SSI-Scripts* in the same folder where the other *ong-bitcoin-argentina* repos are.
-- Change *<CHANGE_ME>*  values in *update-and-push.env.example* and save changes in a new file named *update-and-push.env*.
+- Change `<CHANGE_ME>`  values in *update-and-push.env.example* and save changes in a new file named *update-and-push.env*.
 - Don't change the folder where this script lives.
 - Double check that the full path to this script in your local computer doesn't contain spaces nor reserved characters.
 - Use your Linux console to go to local folder where this scripts lives and run it (not as *sudo*).
@@ -34,9 +34,9 @@ This guide explains how to use different scripts in this repo.
 A. Optional parameters:
 
 `[ <module1> <module2> ... <moduloe> ] [ -v <ver> -r --upd-only|--push ]`
-		
+
 - `<modulei>`: Module to be processed with this script.
-- `-v <ver>`: If you use this parameter, variable `$DOK_VERSION` will be ignored and `<ver` will be used in its place. 
+- `-v <ver>`: If you use this parameter, variable `$DOK_VERSION` will be ignored and `<ver` will be used in its place.
 - `-r:`	If you use this parameter, script will request for your confirmation to apply operations after showing a summary in the console.
 - `--upd-only`: If you us this parameter, script will only update repos and install dependencies (no tag will be created nor docker image will be built/pushed).
 - `--push`: If you use this parameter:
@@ -46,9 +46,10 @@ A. Optional parameters:
 **IMPORTANT-1:** `<ver>` cannot start with `-`.
 **IMPORTANT-2:** Parameters `--push` and `--upd-only` cannot be used in the same execution.
 **IMPORTANT-3:** By default, no tag will be created nor docker will be built/pushed. To do that, you have to use `--push` parameter.
-				
+
 B. Modules (posible values for `<moduloi>`):
 
+- `--id`: *identidad*.
 - `--iss-back`: *didi-issuer-back*.
 - `--iss-front`: *didi-issuer-front*.
 - `--jwt`: *didi-jwt-validator*.

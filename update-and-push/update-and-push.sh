@@ -42,7 +42,8 @@
 #				
 #-Módulos (posibles valores de <moduloi>):
 #
-#	--iss-back:  "didi-issuer-back"
+#	--id:		 "identidad".
+#	--iss-back:  "didi-issuer-back".
 #	--iss-front: "didi-issuer-front".
 #	--jwt: 	   	 "didi-jwt-validator".
 #	--mouro:	 "didi-mouro".
@@ -97,6 +98,7 @@ PROC_DOCKER=""; 			  #Array que contendrá los tags de los Docker que serán bui
 											
 #Posibles parámetros de este script y valores para las distintas posiciones del arreglo "$PROC_MOD":
 
+readonly OPT_MOD_IDENTIDAD="--id";					#"identidad"
 readonly OPT_MOD_ISSUER_MODULE_BACK="--iss-back"; 	#"didi-issuer-back"
 readonly OPT_MOD_ISSUER_MODULE_FRONT="--iss-front"; #"didi-issuer-front".
 readonly OPT_MOD_JWT_VALIDATOR_VIEWER="--jwt"; 		#"didi-jwt-validator"
@@ -225,7 +227,7 @@ function yarnInstall() {
 #Instala los paquetes npm especificados en el repo.
 function npmInstall() {
 
-	if [ -f "package.json" ]; then
+	if [ -f "package-lock.json" ]; then
 	    npm ci;
 	else
 		npm i;
@@ -461,7 +463,8 @@ function printHelp() {
 
 -Módulos (posibles valores de <moduloi>):
 
-	$OPT_MOD_ISSUER_MODULE_BACK: \"didi-issuer-back\"
+	$OPT_MOD_IDENTIDAD: \"identidad\".
+	$OPT_MOD_ISSUER_MODULE_BACK: \"didi-issuer-back\".
 	$OPT_MOD_ISSUER_MODULE_FRONT: \"didi-issuer-front\".
 	$OPT_MOD_JWT_VALIDATOR_VIEWER: \"didi-jwt-validator\".
 	$OPT_MOD_MOURO: \"didi-mouro\".
@@ -493,7 +496,7 @@ function procModTweak() {
 
 	#2. Agregado de módulos:
 	if [ "$PROC_MOD" = "" ]; then 
-		PROC_MOD="$DOK_FILE_ISSUER_MODULE_BACK|$DOK_FILE_ISSUER_MODULE_FRONT|$DOK_FILE_JWT_VALIDATOR_VIEWER|$DOK_FILE_MOURO|$DOK_FILE_RONDA|$DOK_FILE_SEMILLAS_BACK|$DOK_FILE_SEMILLAS_FRONT|$DOK_FILE_SERVER|";
+		PROC_MOD="$DOK_FILE_IDENTIDAD|$DOK_FILE_ISSUER_MODULE_BACK|$DOK_FILE_ISSUER_MODULE_FRONT|$DOK_FILE_JWT_VALIDATOR_VIEWER|$DOK_FILE_MOURO|$DOK_FILE_RONDA|$DOK_FILE_SEMILLAS_BACK|$DOK_FILE_SEMILLAS_FRONT|$DOK_FILE_SERVER|";
 	fi
 }
 
@@ -540,7 +543,8 @@ function getDocktoProc() {
 
        #Agrego el docker tag de cada módulo a "$PROC_DOCKER":
 		case "$value" in
-			"$DOK_FILE_ISSUER_MODULE_BACK") PROC_DOCKER+="$DOK_TAG_ISSUER_MODULE_BACK|";; 
+			"$DOK_FILE_IDENTIDAD") PROC_DOCKER+="$DOK_TAG_IDENTIDAD|";;
+			"$DOK_FILE_ISSUER_MODULE_BACK") PROC_DOCKER+="$DOK_TAG_ISSUER_MODULE_BACK|";;
 			"$DOK_FILE_ISSUER_MODULE_FRONT") PROC_DOCKER+="$DOK_TAG_ISSUER_MODULE_FRONT|";;
 			"$DOK_FILE_JWT_VALIDATOR_VIEWER") PROC_DOCKER+="$DOK_TAG_JWT_VALIDATOR_VIEWER|";;
 			"$DOK_FILE_MOURO") PROC_DOCKER+="$DOK_TAG_MOURO|";;
@@ -621,6 +625,7 @@ function clone() {
 
 		#Clone del repo "$value":
 		case "$value" in
+			"$(getRepoRootPath $REPO_IDENTIDAD)") cloneOneRepo "$GITHUB_IDENTIDAD";;
 			"$(getRepoRootPath $REPO_ISSUER_MODULE_BACK)") cloneOneRepo "$GITHUB_ISSUER_MODULE_BACK";; 
 			"$(getRepoRootPath $REPO_ISSUER_MODULE_FRONT)") cloneOneRepo "$GITHUB_ISSUER_MODULE_FRONT";;
 			"$(getRepoRootPath $REPO_JWT_VALIDATOR_VIEWER)") cloneOneRepo "$GITHUB_JWT_VALIDATOR_VIEWER";;
@@ -653,7 +658,8 @@ function updateAndBuild() {
 		
 		#Update & Build del módulo "$value":
 		case "$value" in
-			"$DOK_FILE_ISSUER_MODULE_BACK") updateAndBuildOneRepo "$REPO_ISSUER_MODULE_BACK" "$DOK_FILE_ISSUER_MODULE_BACK" "$DOK_TAG_ISSUER_MODULE_BACK";; 
+			"$DOK_FILE_IDENTIDAD") updateAndBuildOneRepo "$REPO_IDENTIDAD" "$DOK_FILE_IDENTIDAD" "$DOK_TAG_IDENTIDAD";;
+			"$DOK_FILE_ISSUER_MODULE_BACK") updateAndBuildOneRepo "$REPO_ISSUER_MODULE_BACK" "$DOK_FILE_ISSUER_MODULE_BACK" "$DOK_TAG_ISSUER_MODULE_BACK";;
 			"$DOK_FILE_ISSUER_MODULE_FRONT") updateAndBuildOneRepo "$REPO_ISSUER_MODULE_FRONT" "$DOK_FILE_ISSUER_MODULE_FRONT" "$DOK_TAG_ISSUER_MODULE_FRONT";;
 			"$DOK_FILE_JWT_VALIDATOR_VIEWER") updateAndBuildOneRepo "$REPO_JWT_VALIDATOR_VIEWER" "$DOK_FILE_JWT_VALIDATOR_VIEWER" "$DOK_TAG_JWT_VALIDATOR_VIEWER";;
 			"$DOK_FILE_MOURO") updateAndBuildOneRepo "$REPO_MOURO" "$DOK_FILE_MOURO" "$DOK_TAG_MOURO";;
@@ -705,6 +711,7 @@ function push() {
 
 while [ $# -gt 0 ]; do
     case $1 in
+    	"$OPT_MOD_IDENTIDAD") PROC_MOD+="$DOK_FILE_IDENTIDAD|";;
         "$OPT_MOD_ISSUER_MODULE_BACK") PROC_MOD+="$DOK_FILE_ISSUER_MODULE_BACK|";; 
         "$OPT_MOD_ISSUER_MODULE_FRONT") PROC_MOD+="$DOK_FILE_ISSUER_MODULE_FRONT|";;
         "$OPT_MOD_JWT_VALIDATOR_VIEWER") PROC_MOD+="$DOK_FILE_JWT_VALIDATOR_VIEWER|";;
