@@ -1,6 +1,6 @@
 version: "3"
 services:
-  rsk-testnet:
+  rsk-mainnet:
     image: mainnet:latest
     build:
         context: ${DOK_FILE_CONTEXT}
