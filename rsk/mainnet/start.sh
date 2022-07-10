@@ -46,7 +46,7 @@ function exitOnError() {
 if [ ! -d $HOST_RSK_DB_PATH ]; then
   mkdir -p $HOST_RSK_DB_PATH;
   exitOnError $?;
-  chown -f 888:888 $HOST_RSK_DB_PATH;
+  sudo chown -f 888:888 $HOST_RSK_DB_PATH;
   chmod 775 $HOST_RSK_DB_PATH;
 fi
 
@@ -54,7 +54,7 @@ fi
 if [ ! -d $HOST_RSK_CFG_PATH ]; then
   mkdir -p $HOST_RSK_CFG_PATH;
   exitOnError $?;
-  chown -f 0:0 $HOST_RSK_CFG_PATH;
+  sudo chown -f 0:0 $HOST_RSK_CFG_PATH;
   chmod 775 $HOST_RSK_CFG_PATH;
 fi
 

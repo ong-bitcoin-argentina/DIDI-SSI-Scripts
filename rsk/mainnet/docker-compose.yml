@@ -11,7 +11,7 @@ services:
       - rsk_cfg:${DOK_RSK_CFG_PATH}
     ports:
       - ${RSK_HTTP_PORT}:4444
-      - ${RSK_PEER_PORT}:50505
+      - ${RSK_PEER_PORT}:5050
 
 volumes:
     rsk_db:
