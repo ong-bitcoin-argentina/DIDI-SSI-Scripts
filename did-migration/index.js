@@ -158,7 +158,21 @@ const run = async () => {
   const promises = issuersDelegados.map(({ did }) => blockchainManager.addDelegate(
       DIDIIdentity,
       did,
-      "1000"
+      "93312000"
+    )
+  )
+
+  const txs = await Promise.allSettled(promises)
+  console.log(JSON.stringify(txs))
+  verify()
+}
+
+
+const verify = async () => {
+  const blockchainManager = new BlockchainManager({providerConfig});
+  const promises = issuersDelegados.map(({ did }) => blockchainManager.validDelegate(
+      DIDIIdentity.did,
+      did
     )
   )
 
@@ -166,4 +180,5 @@ const run = async () => {
   console.log(JSON.stringify(txs))
 }
 
+verify()
 run()
