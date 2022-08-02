@@ -177,8 +177,11 @@ const verify = async () => {
   )
 
   const txs = await Promise.allSettled(promises)
-  console.log(JSON.stringify(txs))
+
+  txs.forEach((tx,i)=> {
+    console.log(`${issuersDelegados[i].name}(${issuersDelegados[i].did}): ${tx.value}`)  
+  })
 }
 
-verify()
+// verify()
 run()
